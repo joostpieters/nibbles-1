@@ -1,2 +1,2 @@
 # nibbles
-![Alt text](screenshot.png?raw=true "Screenshot of the game")
+!["Screenshot of the game"](screenshot.png?raw=true "Screenshot of the game")
