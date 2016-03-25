@@ -1,3 +1,6 @@
+# A nibbles clone
+# Kazantzakis Nikos 2015 - 2016
+
 import os
 import pygame
 import time
@@ -24,31 +27,36 @@ class nibbles:
     center_y = None
 	
     def __init__(self):
-        "Ininitializes a new pygame screen using the framebuffer"
-        # Based on "Python GUI in Linux frame buffer"
-        # http://www.karoltomala.com/blog/?p=679
-        disp_no = os.getenv("DISPLAY")
-        if disp_no:
-            print "I'm running under X display = {0}".format(disp_no)
         
-        # Check which frame buffer drivers are available
-        # Start with fbcon since directfb hangs with composite output
-        drivers = ['fbcon', 'directfb', 'svgalib']
-        found = False
-        for driver in drivers:
-            # Make sure that SDL_VIDEODRIVER is set
-            if not os.getenv('SDL_VIDEODRIVER'):
-                os.putenv('SDL_VIDEODRIVER', driver)
-            try:
-                pygame.display.init()
-            except pygame.error:
-                print 'Driver: {0} failed.'.format(driver)
-                continue
-            found = True
-            break
+        # Detect OS
+        if os.name == "nt":
+            pygame.init()
+        else:
+            "Ininitializes a new pygame screen using the framebuffer"
+            # Based on "Python GUI in Linux frame buffer"
+            # http://www.karoltomala.com/blog/?p=679
+            disp_no = os.getenv("DISPLAY")
+            if disp_no:
+                print "I'm running under X display = {0}".format(disp_no)
+        
+            # Check which frame buffer drivers are available
+            # Start with fbcon since directfb hangs with composite output
+            drivers = ['fbcon', 'directfb', 'svgalib']
+            found = False
+            for driver in drivers:
+                # Make sure that SDL_VIDEODRIVER is set
+                if not os.getenv('SDL_VIDEODRIVER'):
+                    os.putenv('SDL_VIDEODRIVER', driver)
+                try:
+                    pygame.display.init()
+                except pygame.error:
+                    print 'Driver: {0} failed.'.format(driver)
+                    continue
+                found = True
+                break
     
-        if not found:
-            raise Exception('No suitable video driver found!')
+            if not found:
+                raise Exception('No suitable video driver found!')
         
         self.size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         print "Framebuffer size: %d x %d" % (self.size[0], self.size[1])
@@ -130,7 +138,29 @@ class nibbles:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
 					    return
-						
+
+    def displayExitGame(self):
+	    # Show the box at the center of the screen
+        pygame.draw.rect(self.screen, (255, 255, 255), pygame.Rect((self.size[0]/2)-200, (self.size[1]/2)-30, 400,60),0)
+        pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect((self.size[0]/2)-185, (self.size[1]/2)-15, 370,30),0)
+        # Get a refernce to the system font, size 30
+        font = pygame.font.Font(None, 30)
+        # Render some white text onto text_surface
+        text_surface = font.render("Exit Game?   (Y/N)", True, (255, 255, 255))  # White text
+        # Blit the text at 10, 0
+        self.screen.blit(text_surface, ((self.size[0]/2)-100, (self.size[1]/2)-10))
+        pygame.display.update()
+		# Wait for user reply
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_y:
+                        pygame.quit()
+                        sys.exit()						
+                    elif event.key == pygame.K_n:
+                        nibble.drawLevel(currentLevel)
+                        pygame.draw.rect(nibble.screen, (0, 255, 0), pygame.Rect(apple.getX(), apple.getY(), mySnake.size, mySnake.size),0)						
+                        return
 
 # Create an Instance of the game
 nibble = nibbles()
@@ -147,7 +177,7 @@ print "python's dir: " + os.getcwd()
 print "script's dir: " + os.path.dirname(os.path.abspath(__file__))
 
 # Create level
-currentLevel = Level(5,nibble.total_columns,nibble.total_lines)
+currentLevel = Level(1,nibble.total_columns,nibble.total_lines)
     
 # Draw level
 nibble.drawLevel(currentLevel)
@@ -243,6 +273,8 @@ while True:
 		        mySnake.direction = "D"
             elif event.key == pygame.K_UP and  mySnake.direction != "D":
                 mySnake.direction = "U"
+            elif event.key == pygame.K_ESCAPE:
+				nibble.displayExitGame();
 	
 	# Grow / Reduce Snake's coordinates according to direction
     if mySnake.direction == "R":
